@@ -7,6 +7,29 @@ class AdditionalTagsController < ApplicationController
   before_action :set_tag_list_path
 
   helper :additional_tags_issues
+  include AdditionalTagsHelper
+
+  accept_api_auth :index
+
+  # used by api calls
+  def index
+    raise 'type is not provided' if params[:type].blank?
+
+    type_info = manageable_tag_columns.detect { |m| m.first.to_s == params[:type] }
+    raise 'type is not supported' unless type_info
+
+    klass = type_info.first.to_s.camelize.constantize
+    raise "#{klass.name} does not support tags" unless klass.respond_to? :available_tags
+
+    @tags = klass.available_tags.to_a
+    @count = @tags.count
+    @tag_type = klass.name
+
+    respond_to do |format|
+      format.html { head :not_acceptable }
+      format.api
+    end
+  end
 
   def edit; end
 
@@ -44,8 +67,8 @@ class AdditionalTagsController < ApplicationController
 
   def merge
     return unless request.post? &&
-                  params[:tag].present? &&
-                  params[:tag][:name].present?
+      params[:tag].present? &&
+      params[:tag][:name].present?
 
     AdditionalTags::Tags.merge params[:tag][:name], @tags
     redirect_to @tag_list_path

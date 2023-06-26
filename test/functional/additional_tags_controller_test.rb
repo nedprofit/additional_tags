@@ -35,6 +35,23 @@ class AdditionalTagsControllerTest < AdditionalTags::ControllerTest
     add_issue @project_b, %w[b8 b9], false
   end
 
+  def test_index_only_available_for_api
+    with_plugin_settings 'additional_tags', active_issue_tags: 1 do
+      get :index,
+          params: { type: 'issue' }
+
+      assert_response :not_acceptable
+    end
+  end
+
+  def test_index_without_permission
+    @request.session[:user_id] = 2
+    get :index,
+        params: { type: 'issue', format: 'xml' }
+
+    assert_response :forbidden
+  end
+
   def test_should_get_edit
     tag = ActsAsTaggableOn::Tag.find_by name: 'a1'
     get :edit,
