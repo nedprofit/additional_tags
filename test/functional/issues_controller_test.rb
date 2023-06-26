@@ -129,6 +129,26 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
     end
   end
 
+  def test_should_create_ticket_with_tags
+    @request.session[:user_id] = 2
+    project = projects :projects_001
+    assert_difference 'Issue.count' do
+      post :create,
+           params: { issue: { tracker_id: 3,
+                              subject: 'test with tags',
+                              project_id: 1,
+                              status_id: 2,
+                              priority_id: 5,
+                              tag_list: ['cat, dog, mouse'] },
+                     project_id: project }
+    end
+
+    last_issue = Issue.last
+    assert_redirected_to controller: 'issues', action: 'show', id: last_issue.id
+    assert_equal 'test with tags', last_issue.subject
+    assert_sorted_equal %w[cat dog mouse], last_issue.tags.map(&:name)
+  end
+
   def test_edit_issue_tags_should_journalize_changes
     with_plugin_settings 'additional_tags', active_issue_tags: 1 do
       @request.session[:user_id] = 2
@@ -183,7 +203,8 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
       issue2 = issues :issues_002
 
       assert_equal ['First'], issue1.tag_list
-      assert_equal [], issue2.tag_list
+      assert issue2.tag_list.is_a? Array
+      assert_empty issue2.tag_list
 
       post :bulk_update,
            params: { ids: [issue1.id, issue2.id],
@@ -191,7 +212,7 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
 
       assert_response :redirect
       assert_equal ['First'], Issue.find(1).tag_list
-      assert_equal [], Issue.find(2).tag_list
+      assert_empty Issue.find(2).tag_list
     end
   end
 
@@ -279,7 +300,7 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
       tag = 'First'
 
       assert_not_equal Issue.find(2).tag_list, [tag]
-      assert Issue.available_tags.map(&:name).include?(tag)
+      assert_includes Issue.available_tags.map(&:name), tag
       post :update,
            params: { id: 2, issue: { project_id: 1, tag_list: [tag] } }
 
@@ -295,8 +316,8 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
 
       issue = issues :issues_001
 
-      assert Issue.available_tags.map(&:name).include?(new_tag)
-      assert_equal issue.description, 'Unable to print recipes'
+      assert_includes Issue.available_tags.map(&:name), new_tag
+      assert_equal 'Unable to print recipes', issue.description
       assert_not issue.tag_list.include?(new_tag)
 
       post :update,
@@ -308,7 +329,7 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
       issue.reload
 
       assert_response :redirect
-      assert_equal issue.description, 'New description'
+      assert_equal 'New description', issue.description
       assert_not issue.tag_list.include?(new_tag)
     end
   end
@@ -336,7 +357,7 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
       issue = issues :issues_001
 
       assert_not Issue.all_tags.map(&:name).include?(new_tag)
-      assert_equal issue.description, 'Unable to print recipes'
+      assert_equal 'Unable to print recipes', issue.description
       assert_not issue.tag_list.include?(new_tag)
 
       post :update,
@@ -348,7 +369,7 @@ class IssuesControllerTest < AdditionalTags::ControllerTest
       issue.reload
 
       assert_response :redirect
-      assert_equal issue.description, 'New description'
+      assert_equal 'New description', issue.description
       assert_not issue.tag_list.include?(new_tag)
     end
   end

@@ -67,8 +67,8 @@ class AdditionalTagsController < ApplicationController
 
   def merge
     return unless request.post? &&
-      params[:tag].present? &&
-      params[:tag][:name].present?
+                  params[:tag].present? &&
+                  params[:tag][:name].present?
 
     AdditionalTags::Tags.merge params[:tag][:name], @tags
     redirect_to @tag_list_path
