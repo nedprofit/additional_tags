@@ -5,7 +5,7 @@ class StParser < ActsAsTaggableOn::GenericParser
       string = @tag_list
 
       string = string.join(ActsAsTaggableOn.glue) if string.respond_to?(:join)
-      TagList.new.tap do |tag_list|
+      ActsAsTaggableOn::TagList.new.tap do |tag_list|
         string = string.to_s.dup
 
         string.gsub!(double_quote_pattern) do
