@@ -64,7 +64,6 @@ module AdditionalTags
   # Run the classic redmine plugin initializer after rails boot
   class Plugin < ::Rails::Engine
     require 'additional_tags/tags'
-    require 'additional_tags/st_parser'
 
     ActsAsTaggableOn.tags_table = TAG_TABLE_NAME
     ActsAsTaggableOn.taggings_table = TAGGING_TABLE_NAME
