@@ -67,7 +67,7 @@ module AdditionalTags
           if user.allowed_to?(:create_issue_tags, project) ||
              user.allowed_to?(:edit_issue_tags, project) && Issue.allowed_tags?(tags)
             attrs[:tag_list] = tags # required fix for journal details
-            ActsAsTaggableOn.default_parser = StParser
+            ActsAsTaggableOn.delimiter = ";"
             self.tag_list = tags    # required fix for tags         
           end
         end
