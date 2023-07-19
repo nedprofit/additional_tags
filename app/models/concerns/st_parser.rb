@@ -31,7 +31,7 @@ class StParser < ActsAsTaggableOn::GenericParser
     # private
     def delimiter
       # Parse the quoted tags
-      d = ActsAsTaggableOn.delimiter
+      d = ";"
       # Separate multiple delimiters by bitwise operator
       d = d.join('|') if d.is_a?(Array)
       d
